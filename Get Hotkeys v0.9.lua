@@ -4,6 +4,7 @@
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
 ------------######	Website:  https://cheatthegame.net
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
+------------######	Version---------0.9
 -------------------------------------------------------
 local authorMenu = true
 local checkMenu = nil
