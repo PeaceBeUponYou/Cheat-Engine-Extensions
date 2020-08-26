@@ -11,9 +11,10 @@
 local mf = getMainForm()
 local gpnl = mf.Panel9
 
+--Start By Creating a Button right below Panel14 in Panel 9!
 if not gpnl.btnClone then
   crt = createButton(gpnl)
-  crt.Caption = "Clone Tab"
+  crt.Caption = "Clone Scan Tab"
   crt.setPosition(70,200)
   crt.AutoSize = true
   crt.Name = 'btnClone'
