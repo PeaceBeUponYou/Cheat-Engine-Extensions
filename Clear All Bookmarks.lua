@@ -1,3 +1,12 @@
+------------######  Author--------------PeaceBeUponYou
+------------######  Community-----------Cheat The Game
+------------######			:Join US:
+------------######	Discord:  https://discordapp.com/invite/ndn4pqs
+------------######	Website:  https://cheatthegame.net
+------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
+------------###### 	MY GitHub: https://github.com/PeaceBeUponYou/Cheat-Engine-Extensions
+-------------------------------------------------------
+
 local mf = getMemoryViewForm().DisassemblerView.PopupMenu
 local capMf = 'Set/Unset bookmark'
 local NewFormCap = 'Clear All Bookmarks'
