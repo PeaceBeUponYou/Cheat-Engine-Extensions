@@ -4,6 +4,7 @@
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
 ------------######	Website:  https://cheatthegame.net
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
+------------###### 	MY GitHub: https://github.com/PeaceBeUponYou/Cheat-Engine-Extensions
 ------------######  Version------------1.1
 -------------------------------------------------------
 
