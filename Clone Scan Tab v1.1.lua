@@ -21,20 +21,16 @@ if not gpnl.btnClone then
   crt.Name = 'btnClone'
   crt.Anchor = "[akRight,akBottom]"
 end
---Check if process is selected [Process must be available to prevent errors]
-registerFormAddNotification(function (mf)
-	t = createTimer()
-	t.Interval = 500
-	t.OnTimer = function()
-		if getOpenedProcessID() == 0 then
-			crt.Enabled = false
-		else
-			crt.Enabled = true
-		end
-	end
-end)
+
 
 crt.OnClick = function()
+--Check if process is selected [Process must be available to prevent errors]
+if getOpenedProcessID() == 0 then
+ messageDialog("No process Open! Please Open a process First!",mtError,mbOK)
+ error()
+end
+
+--If any process is attached to Cheat-Engine, proceed:
 local memScn = getCurrentMemscan()
 
 --Getting data of current Scan Tab which is to be cloned
