@@ -78,8 +78,6 @@ createTab()
 secScan(memScn)
 fS1 = fS1:sub(1,#fS1-1)
 sS1 = sS1:sub(1,#sS1-1)
---print('\"'..fS1..'\"')
---print('\"'..sS1..'\"')
 -------------------------------
 function cpyFiles(dir1,dir2)
   local wait0 = 0
