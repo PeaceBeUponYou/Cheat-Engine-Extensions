@@ -5,6 +5,7 @@
 ------------######	Website:  https://cheatthegame.net
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
 ------------###### 	MY GitHub: https://github.com/PeaceBeUponYou/Cheat-Engine-Extensions
+------------######  Ext Version: 1.1
 -------------------------------------------------------
 
 registerFormAddNotification(function (form)
@@ -32,14 +33,16 @@ registerFormAddNotification(function (form)
 								if ADD.Item[j].Caption == 'Assign to current cheat table' then		
 								clickItem = ADD.Item[j]
 								clickItem.doClick()
-								t.destroy()
+								--t.destroy()
 								end
 							end
 						end
 					end
-				break
 				end
 			end
+			t.destroy()
 		end
-	end	
+	else
+		error()
+	end
 end)
