@@ -60,10 +60,14 @@ crtNew.OnClick = function ()
 	local BUAddress = mvf.DisassemblerView.SelectedAddress
 	local BUTop = mvf.DisassemblerView.TopAddress
 
-	for i = 0, (mvf.MenuItem23.Count-1 or #tGetBMRecord-1) do
-	   local cnvtToAddr = getAddress(tGetBMRecord[i+1])
-	   mvf.DisassemblerView.SelectedAddress = cnvtToAddr
-	   mvf.MenuItem23.Item[i].doClick()
+	for i = 0, mvf.MenuItem23.Count-1 do
+		if tGetBMRecord[i+1] then 
+		   local cnvtToAddr = getAddress(tGetBMRecord[i+1])
+		   mvf.DisassemblerView.SelectedAddress = cnvtToAddr
+		   mvf.MenuItem23.Item[i].doClick()
+		else
+		   break
+		end
 	end
 
 	mvf.DisassemblerView.TopAddress = BUTop
