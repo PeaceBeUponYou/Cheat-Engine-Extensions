@@ -6,7 +6,7 @@
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
 ------------###### 	MY GitHub: https://github.com/PeaceBeUponYou/Cheat-Engine-Extensions
 ------------######  Ext Name: Assign to bookmarks from Clipboard
-------------######  Ext Version: 0.9
+------------######  Ext Version: 1.1
 -------------------------------------------------------
 
 
