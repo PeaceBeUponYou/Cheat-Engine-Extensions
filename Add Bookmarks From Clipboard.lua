@@ -56,7 +56,6 @@ crtNew.OnClick = function ()
 		mindTheCount = mindTheCount + getFromCB:find('\n')
 		tGetBMRecord[1+#tGetBMRecord] = trimmedString:sub(1,#trimmedString-2)
 	end
-	se = table.concat(tGetBMRecord,'\n')
 
 	local BUAddress = mvf.DisassemblerView.SelectedAddress
 	local BUTop = mvf.DisassemblerView.TopAddress
