@@ -31,29 +31,29 @@ end
 
 firstAdrs,lastAdrs = selAddresses(memV)
 for i=0, (lastAdrs-firstAdrs) do
-  if not c then c = getDefaultDisassembler() end
+  if not ddis then ddis = getDefaultDisassembler() end
   if not firstAdrs then firstAdrs,lastAdrs = selAddresses(memV) end
-   d = c.disassemble(firstAdrs)
-   e = c.getLastDisassembleData(d)
-   f = e.bytes
-  num = #f
+   ddata = ddis.disassemble(firstAdrs)
+   lastdata = ddis.getLastDisassembleData(ddata)
+   theBytes = lastdata.bytes
+  num = #theBytes
   firstAdrs = firstAdrs + num
   oneless = nil
   for j=1, num do
   if oneless == 1 and j ==num then break end
    if j==1 then
-     str = ('%02X '):format(f[1])
-    if f[1] >= 0x41 and f[1] <= 0x4F then str = ('%s%02X '):format(str,f[2]); oneless = 1 end --if its x64 upgraded instruction
+     str = ('%02X '):format(theBytes[1])
+    if theBytes[1] >= 0x41 and theBytes[1] <= 0x4F then str = ('%s%02X '):format(str,theBytes[2]); oneless = 1 end --if its x64 upgraded instruction
    else
     str = str..'pp' --string..wildcard
   end
   end
   store = store..' '..str
-  print(getNameFromAddress(e.address),#f,' ',str) --optional--to print each address with its wildcard
+  print(getNameFromAddress(lastdata.address),#theBytes,' ',str) --optional--to print each address with its wildcard
   if firstAdrs > lastAdrs then
    break
   end
 end
-
+ writeToClipboard(store)
  print(store)
 end
