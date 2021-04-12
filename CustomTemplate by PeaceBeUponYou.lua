@@ -2,11 +2,12 @@
 ------------######  Community-----------Cheat The Game
 ------------######			:Join US:
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
+------------######	Website:  https://cheatthegame.net
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
 -------------------------------------------------------
 
-MyTemplates = 'PeaceBeUponYou'
-t_names = {'Fixed Absolute Jump | with jmp','AOB and BKPs'}
+MyTemplates = 'MY TEMPLATES'
+t_names = {'Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call'}
 registerFormAddNotification(
 function(form)
   if form.ClassName =="TfrmAutoInject" then
@@ -35,9 +36,10 @@ function newEntry(form)
 	---
 	---child menu
 	itm = {}
-	for i=1, 2 do
+	for i=1, 3 do
 		itm[i] = createMenuItem(parent)
 		itm[i].Caption = t_names[i]
+		--itm.Shortcut = 'CTRL+D'
 		parent.add(itm[i])
 	end
 	itm[1].Shortcut = 'CTRL+D'
@@ -47,6 +49,10 @@ function newEntry(form)
 	itm[2].Shortcut = 'CTRL+E'
 	itm[2].OnClick = function()
 			  readmemAOB(currfrm)
+			end
+	--itm[3].Shortcut = 'CTRL+E'
+	itm[3].OnClick = function()
+			  funcClickWithCall(frm)
 			end
 end
 
@@ -105,7 +111,8 @@ function funcClick(frm)
   ]],
   [[newmem:
   pop rax
-  //Write your code here:]],[[jmp return
+  //Write your code here:]],[[push return
+  ret
   ]]
 	if not target then --converting x64 registers to x86 registers
 	 base = string.gsub(base,'r','e',3)
@@ -142,6 +149,7 @@ local disAsView = getMemoryViewForm().DisassemblerView
 registerSymbol(name_bkpBytes)
 name_bkpBytes:
   readmem(name,bytes)
+//Code Follow:
   ]],[[[DISABLE]
 name:
   readmem(name_bkpBytes,bytes)
@@ -154,9 +162,93 @@ unregistersymbol(name, name_bkpBytes)
         disableRes = disableRes:gsub('bytes',numOfReadmemBytes)
 	--fin = string.gsub(str,'nop%s*%d*', '' )
 	fin = string.gsub(str,'alloc(.-)jmp return',allocRestr)
-        fin = string.gsub(fin,'%[DISABLE%](.-){',disableRes..'{')
+	fin = string.gsub(fin,'Follow:(.-)'..aobTitle,'Follow:\n'..aobTitle)
+    fin = string.gsub(fin,'%[DISABLE%](.-){',disableRes..'{')
 	final = string.gsub(fin,'jmp newmem(.-)return:','')
 	form.Assemblescreen.Lines.Text = final
   --print(final)
 
+end
+
+function funcClickWithCall(frm)
+    local form = currfrm
+	--print(form.ClassName)
+	local disAsView = getMemoryViewForm().DisassemblerView
+	selAdrs = disAsView.SelectedAddress
+	target = targetIs64Bit()
+	numOfBytes = target and 13 or 8
+	number = target and 8 or 4
+	instSize = getInstructionSize(selAdrs)
+	while(instSize < numOfBytes)do
+	nextAddress = getAddress(selAdrs)+instSize
+	instSize = instSize + getInstructionSize(nextAddress)
+	end
+	aobTitle = InputQuery('Enter name of AOB Symbol: ','Here: ','myAOB')
+	n,totalInstructions = 0,0
+	nextAddress=selAdrs
+	opcodeStr = createStringList()
+	byteStr = ''
+	click = '  //readmem(aobTitle,num)'
+	if not aobTitle then return end
+	click = string.gsub(click,'aobTitle',aobTitle)
+	click = string.gsub(click,'num',instSize)
+	opcodeStr.Text = 'code:\n'..click
+	def = getDefaultDisassembler()
+
+	while n<instSize do
+	dis = def.disassemble(nextAddress)
+	p,q,r,s = splitDisassembledString(dis)
+	opcodeStr.addText('  '..q)
+	byteStr = byteStr..string.gsub(r,' ','')
+	n = n + getInstructionSize(nextAddress)
+	nextAddress = getAddress(selAdrs)+ n
+	totalInstructions = totalInstructions+1
+	end
+	base,restore,last = [[push rax
+  mov rax,newmem
+  call rax
+  ]],
+  [[newmem:
+  add rsp,num
+  pop rax
+  //Write your code here:]],[[
+  push rax
+  mov rax,return
+  xchg rax,[rsp]
+  ret]]
+	if not target then --converting x64 registers to x86 registers
+	 base = string.gsub(base,'r','e',3)
+	 restore = string.gsub(restore,'r','e',2)
+	 last = string.gsub(last,'ra','ea')
+	 last = string.gsub(last,'rs','es',1)
+	end
+	opcodeStr.addText(last)
+	new = '' --bytes for disable
+	for i=1,#byteStr,2 do
+	  new = new..string.sub(byteStr,i,i+1)..' '
+	end
+
+	if instSize-numOfBytes == 00 then
+	  torep = ''
+	else
+	  torep = string.format('nop %d',instSize-numOfBytes)
+	end
+
+	name = getNameFromAddress(selAdrs)
+	mainTemplet = createStringList()
+	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,totalInstructions-1)
+	--print(mainTemplet.Text)
+	
+    Author = [[[ENABLE]
+  //Template Author = PeaceBeUponYou]]
+	str = mainTemplet.Text
+	restore = string.gsub(restore,'num',number)
+	fin = string.gsub(str,'nop%s*%d*', '' )
+	fin = string.gsub(fin,'newmem:',restore)
+	fin = string.gsub(fin,'%gENABLE%g',Author)
+	fin = string.gsub(fin,'jmp newmem',base..torep)
+	fin = string.gsub(fin,'db%s(.-)\n','db '..new..'\n')
+	final = string.gsub(fin,'code:(.-)jmp return',opcodeStr.Text)
+	--print(final)
+	form.Assemblescreen.Lines.Text = final
 end
