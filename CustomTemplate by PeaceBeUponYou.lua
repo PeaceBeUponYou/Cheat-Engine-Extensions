@@ -6,8 +6,8 @@
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
 -------------------------------------------------------
 
-MyTemplates = 'MY TEMPLATES'
-t_names = {'Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - Full Inj With ReadMem'}
+MyTemplates = 'By PeaceBeUponYou'
+t_names = {'Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - Full Inj With ReadMem','MONO - Lua Injection'}
 registerFormAddNotification(
 function(form)
   if form.ClassName =="TfrmAutoInject" then
@@ -36,10 +36,9 @@ function newEntry(form)
 	---
 	---child menu
 	itm = {}
-	for i=1, 4 do
+	for i=1, #t_names do
 		itm[i] = createMenuItem(parent)
 		itm[i].Caption = t_names[i]
-		--itm.Shortcut = 'CTRL+D'
 		parent.add(itm[i])
 	end
 	itm[1].Shortcut = 'CTRL+D'
@@ -56,6 +55,9 @@ function newEntry(form)
 			end
 	itm[4].OnClick = function()
 			  MonoInj(form)
+			end
+	itm[5].OnClick = function()
+			  LuaMonoInj(form)
 			end
 end
 -----------------------------------------------------
@@ -150,10 +152,6 @@ end --]]
 -----------------------------------------------------
 function funcClick(frm)
     local form = currfrm
-	--[[local disAsView = getMemoryViewForm().DisassemblerView
-	selAdrs = disAsView.SelectedAddress
-	target = targetIs64Bit()
-	numOfBytes = target and 13 or 8--]]
 	selAdrs,target,numOfBytes,number = getBasicData()
 	
 	instSize = getInstructionSize(selAdrs)
@@ -188,12 +186,6 @@ function funcClick(frm)
 	for i=1,#byteStr,2 do
 	  new = new..string.sub(byteStr,i,i+1)..' '
 	end
-
-	--[[if instSize-numOfBytes == 00 then
-	  torep = ''
-	else
-	  torep = string.format('nop %d',instSize-numOfBytes)
-	end]]
 	torep = nopsToRepeat(instSize,numOfBytes)
 	
 	name = getNameFromAddress(selAdrs)
@@ -265,12 +257,6 @@ end
 
 function funcClickWithCall(frm)
     local form = currfrm
-	--print(form.ClassName)
-	--[[local disAsView = getMemoryViewForm().DisassemblerView
-	selAdrs = disAsView.SelectedAddress
-	target = targetIs64Bit()
-	numOfBytes = target and 13 or 8
-	number = target and 8 or 4 --]]
 	selAdrs,target,numOfBytes,number = getBasicData()
 	
 	instSize = getInstructionSize(selAdrs)
@@ -322,12 +308,6 @@ function funcClickWithCall(frm)
 	for i=1,#byteStr,2 do
 	  new = new..string.sub(byteStr,i,i+1)..' '
 	end
-
-	--[[if instSize-numOfBytes == 00 then
-	  torep = ''
-	else
-	  torep = string.format('nop %d',instSize-numOfBytes)
-	end--]]
 	torep = nopsToRepeat(instSize,numOfBytes)
 
 	name = getNameFromAddress(selAdrs)
@@ -395,3 +375,98 @@ stri = stri:gsub('newmem:',rstrStr) --replace it with pop rax as well
 form.Assemblescreen.Lines.Text = stri
 
  end
+--LuaMonoInjection:
+function LuaMonoInj(currfrm) 
+local form = currfrm
+local disAsView = getMemoryViewForm().DisassemblerView
+local selAdrs = disAsView.SelectedAddress
+local aobTitle = InputQuery('Enter the Address of Injection: ','Here: ',getNameFromAddress(selAdrs))
+local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
+if aobTitle == '' then return end
+local basicTemplate=[=[
+{$lua}
+if syntaxcheck then return end
+--Check Enabled and Disable Script:
+function createEnableandDisable(enableScriptString, disableString , injAddress)
+ local currentSize = 0
+ local leastSize = 13 --13 bytes at least
+ local instCount = 0
+ local generalSizeScript = [[push rax
+ mov rax,newmem
+ jmp rax
+ PBUY_nops
+ ]]
+ --ENABLE PART
+ local processedString = enableScriptString
+ processedString = processedString:gsub('PBUY_InjectionAddress',injAddress) --Place original injection address
+ local size = getInstructionSize(injAddress)
+ local nextAddress;
+ while (size < leastSize) do
+  instCount = instCount+1
+  nextAddress = getAddress(injAddress) + size
+  size = size + getInstructionSize(nextAddress)
+ end
+ local endsize = size - leastSize
+ if endsize > 0 then
+    generalSizeScript = generalSizeScript:gsub('PBUY_nops', 'nop '..(endsize== 1 and '' or endsize))
+ else
+     generalSizeScript = generalSizeScript:gsub('PBUY_nops', '')
+ end
+ processedString = processedString:gsub('PBUY_realInjection',generalSizeScript)
+ processedString = processedString:gsub('PBUY_readmemBytes',size)
+ --DISABLE PART
+ local processedStringD = disableString
+ processedStringD = processedStringD:gsub('PBUY_readmemBytes',size)
+ return processedString,processedStringD
+end
+
+
+PEACE_Symbol_injAddress = 'PEACE_InjAddressHere'
+PEACE_Symbol_enableScript = [[
+//Template Author = PeaceBeUponYou
+
+define(PEACE_Symbol,PBUY_InjectionAddress)
+alloc(newmem,$1000,PBUY_InjectionAddress)
+
+label(PEACE_Symbol_BkpBytes)
+label(return)
+
+registerSymbol(PEACE_Symbol PEACE_Symbol_BkpBytes)
+
+newmem:
+  pop rax
+  //Write your code here:
+
+PEACE_Symbol_BkpBytes:
+  readmem(PEACE_Symbol,PBUY_readmemBytes)
+  jmp return
+
+
+PEACE_Symbol:
+  PBUY_realInjection
+return:
+]]
+PEACE_Symbol_disableScript = [[
+PEACE_Symbol:
+  readmem(PEACE_Symbol_BkpBytes,PBUY_readmemBytes)
+unregisterSymbol(PEACE_Symbol PEACE_Symbol_BkpBytes)
+dealloc(newmem)
+]]
+
+
+[ENABLE]
+PEACE_Symbol_enablePart,PEACE_Symbol_disabePart = createEnableandDisable(PEACE_Symbol_enableScript,PEACE_Symbol_disableScript,PEACE_Symbol_injAddress)
+success,PEACE_Symbol_disabledia =  autoAssemble(PEACE_Symbol_enablePart)
+if not success then showMessage('Could not enable script!') end
+
+
+[DISABLE]
+success = autoAssemble(PEACE_Symbol_disabePart,PEACE_Symbol_disabledia)
+if not success then showMessage('Could not disable script!')end
+
+]=]
+
+basicTemplate = basicTemplate:gsub('PEACE_InjAddressHere',aobTitle)
+basicTemplate = basicTemplate:gsub('PEACE_Symbol',symbolName)
+form.Assemblescreen.Lines.Text = basicTemplate
+end
