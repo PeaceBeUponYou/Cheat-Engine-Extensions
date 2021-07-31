@@ -385,6 +385,7 @@ local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbo
 if aobTitle == '' then return end
 local basicTemplate=[=[
 {$lua}
+--Template Author: PeaceBeUponYou
 if syntaxcheck then return end
 LaunchMonoDataCollector()
 --Check Enabled and Disable Script:
