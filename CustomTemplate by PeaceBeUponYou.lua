@@ -386,6 +386,7 @@ if aobTitle == '' then return end
 local basicTemplate=[=[
 {$lua}
 if syntaxcheck then return end
+LaunchMonoDataCollector()
 --Check Enabled and Disable Script:
 function createEnableandDisable(enableScriptString, disableString , injAddress)
  local currentSize = 0
