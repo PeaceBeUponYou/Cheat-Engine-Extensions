@@ -5,79 +5,81 @@
 ------------######	Website:  https://cheatthegame.net
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
 -------------------------------------------------------
+templateMain = {}
+templateMain.MyTemplates = 'MY TEMPLATES'
+templateMain.t_names = {'Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - Full Inj With ReadMem','MONO - Lua Injection'}
 
-MyTemplates = 'By PeaceBeUponYou'
-t_names = {'Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - Full Inj With ReadMem','MONO - Lua Injection'}
-registerFormAddNotification(
-function(form)
+function templateMain.AddForm(form)
   if form.ClassName =="TfrmAutoInject" then
-   currfrm = form
+   local currfrm = form
   local timer=createTimer()
   timer.Interval=100
   timer.OnTimer = function (t)
                     if (form.Menu==nil) then return end
-                    timer.destroy()
-					--currfrm = form
-                    newEntry(currfrm)
+                    t.destroy()
+                    templateMain.newEntry(form)
                   end
   else
    return
   end
 	
 end
-)
+registerFormAddNotification(templateMain.AddForm)
 
-function newEntry(form)
-	men = form.emplate1
+function templateMain.newEntry(form)
+	local men = form.emplate1
 	---parent menu:
-	parent = createMenuItem(men)
-	parent.Caption = MyTemplates
+	local parent = createMenuItem(men)
+	parent.Caption = templateMain.MyTemplates
 	men.add(parent)
 	---
 	---child menu
-	itm = {}
-	for i=1, #t_names do
+	local itm = {}
+	for i=1,#templateMain.t_names do
 		itm[i] = createMenuItem(parent)
-		itm[i].Caption = t_names[i]
+		itm[i].Caption = templateMain.t_names[i]
+		itm[i].Name = 'peaceMenuItm'..i
+		--itm.Shortcut = 'CTRL+D'
 		parent.add(itm[i])
 	end
 	itm[1].Shortcut = 'CTRL+D'
 	itm[1].OnClick = function()
-			  funcClick()
+			  templateMain.funcClick(form)
 			end
 	itm[2].Shortcut = 'CTRL+E'
-	itm[2].OnClick = function()
-			  readmemAOB(currfrm)
+	itm[2].OnClick = function(sender)
+			  templateMain.readmemAOB(form)
 			end
 	--itm[3].Shortcut = 'CTRL+E'
 	itm[3].OnClick = function()
-			  funcClickWithCall(frm)
+			  templateMain.funcClickWithCall(form)
 			end
 	itm[4].OnClick = function()
-			  MonoInj(form)
+			  templateMain.MonoInj(form)
 			end
 	itm[5].OnClick = function()
-			  LuaMonoInj(form)
+			  templateMain.LuaMonoInj(form)
 			end
 end
 -----------------------------------------------------
 ------------------BASIC FUNCTIONS:-------------------
 -----------------------------------------------------
-function getBasicData()
+function templateMain.getBasicData()
 local disAsView = getMemoryViewForm().DisassemblerView
-	adr = disAsView.SelectedAddress
-	tar = targetIs64Bit()
-	nob = tar and 13 or 8
-	num = tar and 8 or 4
+local adr = disAsView.SelectedAddress
+local tar = targetIs64Bit()
+local nob = tar and 13 or 8
+local num = tar and 8 or 4
 	return adr,tar,nob,num
 end
-function disassembleAndGetData(selAdrs)
+function templateMain.disassembleAndGetData(selAdrs)
   local defDis = getDefaultDisassembler()
   local dis = defDis.disassemble(selAdrs)
   p,q,r,s = splitDisassembledString(dis)
   return s
 end
-function nopsToRepeat(sizeH,sizeL)
+function templateMain.nopsToRepeat(sizeH,sizeL)
+	local torep
 	if sizeH-sizeL == 00 then
 	  torep = ''
 	elseif sizeH-sizeL == 01 then
@@ -88,15 +90,15 @@ function nopsToRepeat(sizeH,sizeL)
 	return torep
 end
 
-function getInjectionText(address,sizeOfComment)
+function templateMain.getInjectionText(address,sizeOfComment)
   local strList = createStringList()
   generateFullInjectionScript(strList,address,sizeOfComment)
   return strList.Text
 end
-function usereadMem(title,size)
+function templateMain.usereadMem(title,size)
   local opcodeStr = createStringList()
-  byteStr = ''
-  click = [[  readmem(titl,num)
+  --byteStr = ''
+  local click = [[  readmem(titl,num)
   jmp return ]]
   if not title then return end
   click = string.gsub(click,'titl',title)
@@ -104,7 +106,7 @@ function usereadMem(title,size)
   opcodeStr.Text = 'code:\n'..click
   return opcodeStr.Text
 end
-function regAndUnreg(replaceString,replaceSize,codet)
+function templateMain.regAndUnreg(replaceString,replaceSize,codet)
   local symbol = [[registerSymbol(title name)
 
 newmem:]]
@@ -121,7 +123,7 @@ dealloc]]
   uns = uns:gsub('title',codet)
   return sym,uns
 end
-function nopsToRepeat(sizeH,sizeL)
+--[[function nopsToRepeat(sizeH,sizeL)
   if sizeH-sizeL == 00 then
     torep = ''
   elseif sizeH-sizeL == 01 then
@@ -130,8 +132,8 @@ function nopsToRepeat(sizeH,sizeL)
     torep = string.format('nop %d',instSize-numOfBytes)
   end
   return torep
-end
-function baseRstrWithNops(tar,nops)
+end --]]
+function templateMain.baseRstrWithNops(tar,nops)
  local basejmp,restorebegin = [[push rax
   mov rax,newmem
   jmp rax
@@ -150,9 +152,13 @@ end --]]
 -----------------------------------------------------
 ------------------MAIN FUNCTIONS:--------------------
 -----------------------------------------------------
-function funcClick(frm)
-    local form = currfrm
-	selAdrs,target,numOfBytes,number = getBasicData()
+function templateMain.funcClick(frm)
+    local form = frm
+	--[[local disAsView = getMemoryViewForm().DisassemblerView
+	selAdrs = disAsView.SelectedAddress
+	target = targetIs64Bit()
+	numOfBytes = target and 13 or 8--]]
+	selAdrs,target,numOfBytes,number = templateMain.getBasicData()
 	
 	instSize = getInstructionSize(selAdrs)
 	while(instSize < numOfBytes)do
@@ -186,7 +192,13 @@ function funcClick(frm)
 	for i=1,#byteStr,2 do
 	  new = new..string.sub(byteStr,i,i+1)..' '
 	end
-	torep = nopsToRepeat(instSize,numOfBytes)
+
+	--[[if instSize-numOfBytes == 00 then
+	  torep = ''
+	else
+	  torep = string.format('nop %d',instSize-numOfBytes)
+	end]]
+	torep = templateMain.nopsToRepeat(instSize,numOfBytes)
 	
 	name = getNameFromAddress(selAdrs)
 	mainTemplet = createStringList()
@@ -217,8 +229,8 @@ function funcClick(frm)
 	form.Assemblescreen.Lines.Text = final
 end
 
-function readmemAOB(currfrm)
-local form = currfrm
+function templateMain.readmemAOB(frm)
+local form = frm
 local disAsView = getMemoryViewForm().DisassemblerView
 	selAdrs = disAsView.SelectedAddress
 	aobTitle = InputQuery('Enter name of AOB Symbol: ','Here: ','myAOB')
@@ -255,9 +267,15 @@ dealloc(name_bkpBytes)
 
 end
 
-function funcClickWithCall(frm)
-    local form = currfrm
-	selAdrs,target,numOfBytes,number = getBasicData()
+function templateMain.funcClickWithCall(frm)
+    local form = frm
+	--print(form.ClassName)
+	--[[local disAsView = getMemoryViewForm().DisassemblerView
+	selAdrs = disAsView.SelectedAddress
+	target = targetIs64Bit()
+	numOfBytes = target and 13 or 8
+	number = target and 8 or 4 --]]
+	selAdrs,target,numOfBytes,number = templateMain.getBasicData()
 	
 	instSize = getInstructionSize(selAdrs)
 	while(instSize < numOfBytes)do
@@ -308,7 +326,13 @@ function funcClickWithCall(frm)
 	for i=1,#byteStr,2 do
 	  new = new..string.sub(byteStr,i,i+1)..' '
 	end
-	torep = nopsToRepeat(instSize,numOfBytes)
+
+	--[[if instSize-numOfBytes == 00 then
+	  torep = ''
+	else
+	  torep = string.format('nop %d',instSize-numOfBytes)
+	end--]]
+	torep = templateMain.nopsToRepeat(instSize,numOfBytes)
 
 	name = getNameFromAddress(selAdrs)
 	mainTemplet = createStringList()
@@ -329,13 +353,13 @@ function funcClickWithCall(frm)
 	form.Assemblescreen.Lines.Text = final
 end
 
-function MonoInj(currfrm)
-local form = currfrm
+function templateMain.MonoInj(frm)
+local form = frm
 
-instCount = 0
-selAdrs = nil
-selAdrs,target,numOfBytes,number = getBasicData()
-addressI = disassembleAndGetData(selAdrs)
+local instCount = 0
+local selAdrs = nil
+selAdrs,target,numOfBytes,number = templateMain.getBasicData()
+addressI = templateMain.disassembleAndGetData(selAdrs)
 stringAddress = getNameFromAddress(addressI)
 instSize = getInstructionSize(stringAddress)
 
@@ -346,20 +370,20 @@ while(instSize < numOfBytes)do
 end
 
 
-aobTitle = InputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
-codeReplace = aobTitle..'_BkpBytes'
-selAdrs,target,numOfBytes,number = getBasicData()
-symbol,unsym = regAndUnreg(codeReplace,instSize,aobTitle)
-torep = nopsToRepeat(instSize,numOfBytes)
+local aobTitle = InputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
+local codeReplace = aobTitle..'_BkpBytes'
+selAdrs,target,numOfBytes,number = templateMain.getBasicData()
+symbol,unsym = templateMain.regAndUnreg(codeReplace,instSize,aobTitle)
+torep = templateMain.nopsToRepeat(instSize,numOfBytes)
 
-jmpstr,rstrStr = baseRstrWithNops(target,torep)
+jmpstr,rstrStr = templateMain.baseRstrWithNops(target,torep)
 
-thereadMemCode = usereadMem(aobTitle,instSize)
+thereadMemCode = templateMain.usereadMem(aobTitle,instSize)
 if not thereadMemCode then messageDialog('No Title!','Script Name was canceled.',mtError,mbOK); return end
 redmem = thereadMemCode:gsub('code',codeReplace)
 
 mono = '//luacall(LaunchMonoDataCollector())\n//Template Author = PeaceBeUponYou'
-thestr = getInjectionText(stringAddress,instCount+1)
+thestr = templateMain.getInjectionText(stringAddress,instCount+1)
 def = thestr:match('}(.-)%)')..')' --extract the define before enable
 --def = def:gsub('%((.-)%,','('..name..',')
 stri = thestr:gsub('{(.-)%[','\n[',1) --replace everything before ENABLE
@@ -375,9 +399,9 @@ stri = stri:gsub('newmem:',rstrStr) --replace it with pop rax as well
 form.Assemblescreen.Lines.Text = stri
 
  end
---LuaMonoInjection:
-function LuaMonoInj(currfrm) 
-local form = currfrm
+
+function templateMain.LuaMonoInj(frm) 
+local form = frm
 local disAsView = getMemoryViewForm().DisassemblerView
 local selAdrs = disAsView.SelectedAddress
 local aobTitle = InputQuery('Enter the Address of Injection: ','Here: ',getNameFromAddress(selAdrs))
@@ -385,7 +409,6 @@ local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbo
 if aobTitle == '' then return end
 local basicTemplate=[=[
 {$lua}
---Template Author: PeaceBeUponYou
 if syntaxcheck then return end
 LaunchMonoDataCollector()
 --Check Enabled and Disable Script:
@@ -459,12 +482,12 @@ dealloc(newmem)
 [ENABLE]
 PEACE_Symbol_enablePart,PEACE_Symbol_disabePart = createEnableandDisable(PEACE_Symbol_enableScript,PEACE_Symbol_disableScript,PEACE_Symbol_injAddress)
 success,PEACE_Symbol_disabledia =  autoAssemble(PEACE_Symbol_enablePart)
-if not success then showMessage('Could not enable script!') end
+if not success then error('Could not enable script!') end
 
 
 [DISABLE]
 success = autoAssemble(PEACE_Symbol_disabePart,PEACE_Symbol_disabledia)
-if not success then showMessage('Could not disable script!')end
+if not success then error('Could not disable script!')end
 
 ]=]
 
