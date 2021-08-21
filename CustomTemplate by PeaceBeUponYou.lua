@@ -1,13 +1,15 @@
 ------------######  Author--------------PeaceBeUponYou
 ------------######  Community-----------Cheat The Game
+------------######	Patreon-------------https://www.patreon.com/peaceCheats
 ------------######			:Join US:
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
 ------------######	Website:  https://cheatthegame.net
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
 -------------------------------------------------------
 templateMain = {}
-templateMain.MyTemplates = 'MY TEMPLATES'
-templateMain.t_names = {'Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - Full Inj With ReadMem','MONO - Lua Injection'}
+templateMain.MyTemplates = {'By PeaceBeUponYou','-'}
+templateMain.MainCont = {}
+templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes'}
 
 function templateMain.AddForm(form)
   if form.ClassName =="TfrmAutoInject" then
@@ -29,41 +31,64 @@ registerFormAddNotification(templateMain.AddForm)
 function templateMain.newEntry(form)
 	local men = form.emplate1
 	---parent menu:
-	local parent = createMenuItem(men)
-	parent.Caption = templateMain.MyTemplates
-	men.add(parent)
+	for i=1, #templateMain.MyTemplates do
+		templateMain.MainCont[i] = createMenuItem(men)
+		templateMain.MainCont[i].Caption = templateMain.MyTemplates[i]
+		men.Insert(i-1,templateMain.MainCont[i])
+	end
 	---
 	---child menu
 	local itm = {}
 	for i=1,#templateMain.t_names do
-		itm[i] = createMenuItem(parent)
+		itm[i] = createMenuItem(templateMain.MainCont[1])
 		itm[i].Caption = templateMain.t_names[i]
 		itm[i].Name = 'peaceMenuItm'..i
 		--itm.Shortcut = 'CTRL+D'
-		parent.add(itm[i])
+		templateMain.MainCont[1].add(itm[i])
 	end
-	itm[1].Shortcut = 'CTRL+D'
 	itm[1].OnClick = function()
+			  templateMain.luaFrame(form)
+			end
+	itm[2].Shortcut = 'CTRL+D'
+	itm[2].OnClick = function()
 			  templateMain.funcClick(form)
 			end
-	itm[2].Shortcut = 'CTRL+E'
-	itm[2].OnClick = function(sender)
+	itm[3].Shortcut = 'CTRL+E'
+	itm[3].OnClick = function(sender)
 			  templateMain.readmemAOB(form)
 			end
 	--itm[3].Shortcut = 'CTRL+E'
-	itm[3].OnClick = function()
+	itm[4].OnClick = function()
 			  templateMain.funcClickWithCall(form)
 			end
-	itm[4].OnClick = function()
+	itm[5].OnClick = function()
 			  templateMain.MonoInj(form)
 			end
-	itm[5].OnClick = function()
+	itm[6].OnClick = function()
 			  templateMain.LuaMonoInj(form)
+			end
+	itm[7].OnClick = function()
+			  templateMain.OPCLuaMonoInj(form)
 			end
 end
 -----------------------------------------------------
 ------------------BASIC FUNCTIONS:-------------------
 -----------------------------------------------------
+function templateMain.luaFrame(form)
+	local temp = [[{$lua}
+if syntaxcheck then return end
+
+[ENABLE]
+
+
+
+[DISABLE]
+
+
+]]
+	form.Assemblescreen.Lines.Text = temp
+end
+
 function templateMain.getBasicData()
 local disAsView = getMemoryViewForm().DisassemblerView
 local adr = disAsView.SelectedAddress
@@ -123,16 +148,7 @@ dealloc]]
   uns = uns:gsub('title',codet)
   return sym,uns
 end
---[[function nopsToRepeat(sizeH,sizeL)
-  if sizeH-sizeL == 00 then
-    torep = ''
-  elseif sizeH-sizeL == 01 then
-    torep = 'nop'
-  else
-    torep = string.format('nop %d',instSize-numOfBytes)
-  end
-  return torep
-end --]]
+
 function templateMain.baseRstrWithNops(tar,nops)
  local basejmp,restorebegin = [[push rax
   mov rax,newmem
@@ -154,10 +170,6 @@ end --]]
 -----------------------------------------------------
 function templateMain.funcClick(frm)
     local form = frm
-	--[[local disAsView = getMemoryViewForm().DisassemblerView
-	selAdrs = disAsView.SelectedAddress
-	target = targetIs64Bit()
-	numOfBytes = target and 13 or 8--]]
 	selAdrs,target,numOfBytes,number = templateMain.getBasicData()
 	
 	instSize = getInstructionSize(selAdrs)
@@ -400,82 +412,47 @@ form.Assemblescreen.Lines.Text = stri
 
  end
 
-function templateMain.LuaMonoInj(frm) 
-local form = frm
-local disAsView = getMemoryViewForm().DisassemblerView
-local selAdrs = disAsView.SelectedAddress
-local aobTitle = InputQuery('Enter the Address of Injection: ','Here: ',getNameFromAddress(selAdrs))
-local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
-if aobTitle == '' then return end
-local basicTemplate=[=[
-{$lua}
+function baseTemp()
+	local templateMono = [=[{$lua}
+--Script Name	: PEACE_Symbol
+--Script Author : PeaceBeUponYou
+--Script Info	: This script does bla bla
 if syntaxcheck then return end
 LaunchMonoDataCollector()
 --Check Enabled and Disable Script:
-function createEnableandDisable(enableScriptString, disableString , injAddress)
- local currentSize = 0
- local leastSize = 13 --13 bytes at least
- local instCount = 0
- local generalSizeScript = [[push rax
- mov rax,newmem
- jmp rax
- PBUY_nops
- ]]
- --ENABLE PART
- local processedString = enableScriptString
- processedString = processedString:gsub('PBUY_InjectionAddress',injAddress) --Place original injection address
- local size = getInstructionSize(injAddress)
- local nextAddress;
- while (size < leastSize) do
-  instCount = instCount+1
-  nextAddress = getAddress(injAddress) + size
-  size = size + getInstructionSize(nextAddress)
- end
- local endsize = size - leastSize
- if endsize > 0 then
-    generalSizeScript = generalSizeScript:gsub('PBUY_nops', 'nop '..(endsize== 1 and '' or endsize))
- else
-     generalSizeScript = generalSizeScript:gsub('PBUY_nops', '')
- end
- processedString = processedString:gsub('PBUY_realInjection',generalSizeScript)
- processedString = processedString:gsub('PBUY_readmemBytes',size)
- --DISABLE PART
- local processedStringD = disableString
- processedStringD = processedStringD:gsub('PBUY_readmemBytes',size)
- return processedString,processedStringD
-end
+PEACE_EXECFUNC
 
 
 PEACE_Symbol_injAddress = 'PEACE_InjAddressHere'
 PEACE_Symbol_enableScript = [[
-//Template Author = PeaceBeUponYou
+	//Template Author = PeaceBeUponYou
 
-define(PEACE_Symbol,PBUY_InjectionAddress)
-alloc(newmem,$1000,PBUY_InjectionAddress)
+	define(PEACE_Symbol,PBUY_InjectionAddress)
+	alloc(newmem,$1000,PBUY_InjectionAddress)
 
-label(PEACE_Symbol_BkpBytes)
-label(return)
+	label(PEACE_Symbol_BkpBytes)
+	label(return)
 
-registerSymbol(PEACE_Symbol PEACE_Symbol_BkpBytes)
+	registerSymbol(PEACE_Symbol PEACE_Symbol_BkpBytes)
 
-newmem:
-  pop rax
-  //Write your code here:
+	newmem:
+	  pop rax
+	  //Write your code here:
 
-PEACE_Symbol_BkpBytes:
-  readmem(PEACE_Symbol,PBUY_readmemBytes)
-  jmp return
+	PEACE_Symbol_BkpBytes:
+	  PEACE_WHATISHERE 
+	  jmp return
 
 
-PEACE_Symbol:
-  PBUY_realInjection
-return:
+	PEACE_Symbol:
+	  PBUY_realInjection
+	return:
 ]]
 PEACE_Symbol_disableScript = [[
-PEACE_Symbol:
-  readmem(PEACE_Symbol_BkpBytes,PBUY_readmemBytes)
-unregisterSymbol(PEACE_Symbol PEACE_Symbol_BkpBytes)
-dealloc(newmem)
+	PEACE_Symbol:
+	  PEACE_WHATISHERE
+	unregisterSymbol(PEACE_Symbol PEACE_Symbol_BkpBytes)
+	dealloc(newmem)
 ]]
 
 
@@ -488,10 +465,113 @@ if not success then error('Could not enable script!') end
 [DISABLE]
 success = autoAssemble(PEACE_Symbol_disabePart,PEACE_Symbol_disabledia)
 if not success then error('Could not disable script!')end
-
 ]=]
+ return templateMono
+end
 
-basicTemplate = basicTemplate:gsub('PEACE_InjAddressHere',aobTitle)
-basicTemplate = basicTemplate:gsub('PEACE_Symbol',symbolName)
-form.Assemblescreen.Lines.Text = basicTemplate
+function templateMain.LuaMonoInj(frm) 
+	local form = frm
+	local disAsView = getMemoryViewForm().DisassemblerView
+	local selAdrs = disAsView.SelectedAddress
+	local aobTitle = InputQuery('Enter the Address of Injection: ','Here: ',getNameFromAddress(selAdrs))
+	local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
+	if aobTitle == '' then return end
+	local basicTemplate= baseTemp()
+	local execFunc = [=[function createEnableandDisable(enableScriptString, disableString , injAddress)
+	local currentSize = 0
+	local leastSize = 13 --13 bytes at least
+	local instCount = 0
+	local generalSizeScript = [[push rax
+	mov rax,newmem
+	jmp rax
+	PBUY_nops
+	]]
+	--ENABLE PART
+	local processedString = enableScriptString
+	processedString = processedString:gsub('PBUY_InjectionAddress',injAddress) --Place original injection address
+	local size = getInstructionSize(injAddress)
+	local readMemStr = 'readmem(PEACE_Symbol,PBUY_readmemBytes)'
+	processedString = processedString:gsub('PEACE_WHATISHERE',readMemStr)
+	local nextAddress;
+	while (size < leastSize) do
+	instCount = instCount+1
+	nextAddress = getAddress(injAddress) + size
+	size = size + getInstructionSize(nextAddress)
+	end
+	local endsize = size - leastSize
+	if endsize > 0 then
+	generalSizeScript = generalSizeScript:gsub('PBUY_nops', 'nop '..(endsize== 1 and '' or endsize))
+	else
+	 generalSizeScript = generalSizeScript:gsub('PBUY_nops', '')
+	end
+	processedString = processedString:gsub('PBUY_realInjection',generalSizeScript)
+	processedString = processedString:gsub('PBUY_readmemBytes',size)
+	--DISABLE PART
+	local processedStringD = disableString
+	processedStringD = processedStringD:gsub('PEACE_WHATISHERE','readmem(PEACE_Symbol_BkpBytes,PBUY_readmemBytes)')
+	processedStringD = processedStringD:gsub('PBUY_readmemBytes',size)
+	return processedString,processedStringD
+end]=]
+	basicTemplate = basicTemplate:gsub('PEACE_EXECFUNC',execFunc)
+	basicTemplate = basicTemplate:gsub('PEACE_InjAddressHere',aobTitle)
+	basicTemplate = basicTemplate:gsub('PEACE_Symbol',symbolName)
+	form.Assemblescreen.Lines.Text = basicTemplate
+end
+
+function templateMain.OPCLuaMonoInj(frm) 
+	local form = frm
+	local disAsView = getMemoryViewForm().DisassemblerView
+	local selAdrs = disAsView.SelectedAddress
+	local aobTitle = InputQuery('Enter the Address of Injection: ','Here: ',getNameFromAddress(selAdrs))
+	local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
+	if aobTitle == '' then return end
+	local basicTemplate= baseTemp()
+	local execFunc = [=[function createEnableandDisable(enableScriptString, disableString , injAddress)
+	local currentSize = 0
+	local leastSize = 13 --13 bytes at least
+	local instCount = 0
+	local generalSizeScript = [[push rax
+	mov rax,newmem
+	jmp rax
+	PBUY_nops
+	]]
+	--ENABLE PART
+	local processedString = enableScriptString
+	processedString = processedString:gsub('PBUY_InjectionAddress',injAddress) --Place original injection address
+	local size = getInstructionSize(injAddress)
+	
+	local ddis = getDefaultDisassembler()
+	local disa = ddis.disassemble(injAddress)
+	local _,opc,_,_ = splitDisassembledString(disa)
+	local strlist = createStringlist()
+	strlist.addText(opc)
+	
+	local nextAddress;
+	while (size < leastSize) do
+		nextAddress = getAddress(injAddress) + size
+		size = size + getInstructionSize(nextAddress)
+		disa = ddis.disassemble(nextAddress)
+		_,opc,_,_ = splitDisassembledString(disa)
+		strlist.addText(opc)
+	end
+	processedString = processedString:gsub('PEACE_WHATISHERE',strlist.Text)
+	local endsize = size - leastSize
+	if endsize > 0 then
+		generalSizeScript = generalSizeScript:gsub('PBUY_nops', 'nop '..(endsize== 1 and '' or endsize))
+	else
+		generalSizeScript = generalSizeScript:gsub('PBUY_nops', '')
+	end
+	processedString = processedString:gsub('PBUY_realInjection',generalSizeScript)
+	processedString = processedString:gsub('PBUY_readmemBytes',size)
+	--DISABLE PART
+	local processedStringD = disableString
+	processedStringD = processedStringD:gsub('PEACE_WHATISHERE',strlist.Text)
+	processedStringD = processedStringD:gsub('PBUY_readmemBytes',size)
+	strlist.destroy()
+	return processedString,processedStringD
+end]=]
+	basicTemplate = basicTemplate:gsub('PEACE_EXECFUNC',execFunc)
+	basicTemplate = basicTemplate:gsub('PEACE_InjAddressHere',aobTitle)
+	basicTemplate = basicTemplate:gsub('PEACE_Symbol',symbolName)
+	form.Assemblescreen.Lines.Text = basicTemplate
 end
