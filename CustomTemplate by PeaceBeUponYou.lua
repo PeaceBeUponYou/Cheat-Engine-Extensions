@@ -4,7 +4,7 @@
 ------------######			:Join US:
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
 -------------------------------------------------------
-templateMain = {}
+local templateMain = {}
 templateMain.MyTemplates = {'By PeaceBeUponYou','-'}
 templateMain.MainCont = {}
 templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes','MONO -CSCompiler'}
