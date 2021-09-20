@@ -3,13 +3,11 @@
 ------------######	Patreon-------------https://www.patreon.com/peaceCheats
 ------------######			:Join US:
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
-------------######	Website:  https://cheatthegame.net
-------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
 -------------------------------------------------------
 templateMain = {}
 templateMain.MyTemplates = {'By PeaceBeUponYou','-'}
 templateMain.MainCont = {}
-templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes'}
+templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes','MONO -CSCompiler'}
 
 function templateMain.AddForm(form)
   if form.ClassName =="TfrmAutoInject" then
@@ -69,6 +67,9 @@ function templateMain.newEntry(form)
 			end
 	itm[7].OnClick = function()
 			  templateMain.OPCLuaMonoInj(form)
+			end
+	itm[8].OnClick = function() --MONO CSCompiler
+			  templateMain.CSCompiler(form)
 			end
 end
 -----------------------------------------------------
@@ -574,4 +575,121 @@ end]=]
 	basicTemplate = basicTemplate:gsub('PEACE_InjAddressHere',aobTitle)
 	basicTemplate = basicTemplate:gsub('PEACE_Symbol',symbolName)
 	form.Assemblescreen.Lines.Text = basicTemplate
+end
+
+function templateMain.CSCompiler(form)
+	if getCEVersion() < 7.3 then showMessage('Cheat Engine 7.3 or higher is required, you dufus!'); return end
+	local injName = inputQuery('Info','Enter the injection name: ','myCSInjection')
+	if not(injName) then return end
+	local mainScript = [=[{$lua}
+if syntaxcheck then return end
+
+[ENABLE]
+--Enable Mono:
+PEACE_InjectionAddress = 'PEACE_ADDRESS'
+if not(getAddressSafe(PEACE_InjectionAddress)) then miMonoActivateClick() end --enable Mono
+local PEACE_ref, PEACE_sys = dotnetpatch_getAllReferences()
+PEACE_ref[#PEACE_ref+1] = PEACE_sys
+
+PEACE_script = [[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
+
+public class PEACE_KLASS : PEACE_PARENTKLASS {
+  public ... PEACE_newMethod(...){
+  }
+
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  public ... PEACE_oldMethod(...){
+  }
+}
+]]
+
+local PEACE_asm, PEACE_msg2 = compileCS(PEACE_script,PEACE_ref,'')
+if (PEACE_asm) then
+  PEACE_result, PEACE_disableinfo, PEACE_disablescript = InjectDotNetDetour(PEACE_asm,PEACE_InjectionAddress,'PEACE_KLASS::PEACE_newMethod','PEACE_KLASS::PEACE_oldMethod')
+else
+ getLuaEngine().mOutput.clear()
+ print(PEACE_msg2)
+ error('could not compile CS code!')
+end
+
+--Disable Mono:
+if (getAddressSafe(PEACE_InjectionAddress)) then miMonoActivateClick() end
+[DISABLE]
+
+autoAssemble(PEACE_disablescript)
+
+	]=]
+
+	local newF = createForm()
+	newF.Width = 400
+	newF.Height = 210
+	newF.Caption = 'Data'
+	newF.Position = 'poWorkAreaCenter'
+
+	local lbls = {}
+	local labelCaps = {'Injection Address:','Parent Class:','Class Name:','New Method Name:','Old Method Name:'}
+	for i=1,#labelCaps do
+	  lbls[i] = createLabel(newF)
+	  lbls[i].Caption = labelCaps[i]
+	  lbls[i].Width = 140
+	  lbls[i].Font.Size = 12
+	  lbls[i].Top = i>1 and lbls[i-1].Top + lbls[i-1].Height +10 or 19--(100 - 12*#labelCaps)
+	end
+
+	local edts = {}
+	for i=1,#lbls do
+	  edts[i] = createEdit(newF)
+	  edts[i].Text = ''
+	  edts[i].Font.Size = 10
+	  edts[i].Left = 150
+	  edts[i].Width = newF.Width - edts[i].Left - lbls[i].Left
+	  edts[i].Top = i>1 and edts[i-1].Top + edts[i-1].Height +10 or 10--(100 - 12*#labelCaps)
+	end
+	function okclick()
+		adrs = edts[1].Text
+		pklss = edts[2].Text
+		nklss = edts[3].Text
+		newM = edts[4].Text
+		oldM = edts[5].Text
+		newF.Close()
+		local newscript = mainScript:gsub('PEACE_ADDRESS',adrs)
+		newscript= newscript:gsub('PEACE_KLASS',nklss)
+		newscript= newscript:gsub('PEACE_PARENTKLASS',pklss)
+		newscript= newscript:gsub('PEACE_newMethod',newM)
+		newscript= newscript:gsub('PEACE_oldMethod',oldM)
+		newscript= newscript:gsub('PEACE',injName)
+		form.Assemblescreen.Lines.Text = newscript
+	end
+	function cancelclick()
+		newF.Close()
+	end
+		local btnC = {'Accept','Cancel'}
+		local btns = {}
+		local btnFuns = {okclick,cancelclick}
+	for i=1, #btnC do
+		 btns[i] = createButton(newF)
+		 btns[i].Caption = btnC[i]
+		 btns[i].Top = edts[#edts].Top+edts[#edts].Height+1
+		 btns[i].Left = i>1 and newF.Width- (btns[i].Width+10)  or 10
+		 btns[i].OnClick = btnFuns[i]
+	end
+		edts[1].Text = getNameFromAddress(getMemoryViewForm().DisassemblerView.SelectedAddress or '')
+		edts[2].Text = ''
+	if (monopipe) then
+		local txt = edts[1].Text:match('(.*):')
+		local thKls = mono_findClass('',txt)
+		if thKls~=nil then edts[2].Text = txt end
+	end
+	edts[3].OnChange = function()
+		edts[4].Text = 'new'..edts[3].Text
+		edts[5].Text = 'old'..edts[3].Text
+		end
 end
