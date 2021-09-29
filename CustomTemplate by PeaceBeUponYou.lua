@@ -4,7 +4,7 @@
 ------------######			:Join US:
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
 -------------------------------------------------------
-local templateMain = {}
+templateMain = {}
 templateMain.MyTemplates = {'By PeaceBeUponYou','-'}
 templateMain.MainCont = {}
 templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes','MONO -CSCompiler'}
@@ -460,12 +460,12 @@ PEACE_Symbol_disableScript = [[
 [ENABLE]
 PEACE_Symbol_enablePart,PEACE_Symbol_disabePart = createEnableandDisable(PEACE_Symbol_enableScript,PEACE_Symbol_disableScript,PEACE_Symbol_injAddress)
 success,PEACE_Symbol_disabledia =  autoAssemble(PEACE_Symbol_enablePart)
-if not success then error('Could not enable script!') end
+if not success then print(PEACE_Symbol_disabledia); error('Could not enable script!') end
 
 
 [DISABLE]
 success = autoAssemble(PEACE_Symbol_disabePart,PEACE_Symbol_disabledia)
-if not success then error('Could not disable script!')end
+if not success then print(PEACE_Symbol_disabledia); error('Could not disable script!')end
 ]=]
  return templateMono
 end
