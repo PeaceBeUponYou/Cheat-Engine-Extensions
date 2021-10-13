@@ -18,14 +18,13 @@ function templateMain.AddForm(form)
                     if (form.Menu==nil) then return end
                     t.destroy()
                     templateMain.newEntry(form)
-					unregisterFormAddNotification(formx)
                   end
   else
    return
   end
 	
 end
-formx=registerFormAddNotification(templateMain.AddForm)
+registerFormAddNotification(templateMain.AddForm)
 
 function templateMain.newEntry(form)
 	local men = form.emplate1
