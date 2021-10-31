@@ -7,7 +7,7 @@
 templateMain = {}
 templateMain.MyTemplates = {'By PeaceBeUponYou','-'}
 templateMain.MainCont = {}
-templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','AOB and BKPs','Fixed Absolute Jump | with call','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes','MONO -CSCompiler'}
+templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','Direct Bytes Manipulation (AOB)','Fixed Absolute Jump | with call','-','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes','MONO -CSCompiler'}
 
 function templateMain.AddForm(form)
   if form.ClassName =="TfrmAutoInject" then
@@ -24,7 +24,7 @@ function templateMain.AddForm(form)
   end
 	
 end
-registerFormAddNotification(templateMain.AddForm)
+formx=registerFormAddNotification(templateMain.AddForm)
 
 function templateMain.newEntry(form)
 	local men = form.emplate1
@@ -41,7 +41,6 @@ function templateMain.newEntry(form)
 		itm[i] = createMenuItem(templateMain.MainCont[1])
 		itm[i].Caption = templateMain.t_names[i]
 		itm[i].Name = 'peaceMenuItm'..i
-		--itm.Shortcut = 'CTRL+D'
 		templateMain.MainCont[1].add(itm[i])
 	end
 	itm[1].OnClick = function()
@@ -55,20 +54,19 @@ function templateMain.newEntry(form)
 	itm[3].OnClick = function(sender)
 			  templateMain.readmemAOB(form)
 			end
-	--itm[3].Shortcut = 'CTRL+E'
 	itm[4].OnClick = function()
 			  templateMain.funcClickWithCall(form)
 			end
-	itm[5].OnClick = function()
+	itm[6].OnClick = function()
 			  templateMain.MonoInj(form)
 			end
-	itm[6].OnClick = function()
+	itm[7].OnClick = function()
 			  templateMain.LuaMonoInj(form)
 			end
-	itm[7].OnClick = function()
+	itm[8].OnClick = function()
 			  templateMain.OPCLuaMonoInj(form)
 			end
-	itm[8].OnClick = function() --MONO CSCompiler
+	itm[9].OnClick = function() --MONO CSCompiler
 			  templateMain.CSCompiler(form)
 			end
 end
@@ -123,7 +121,6 @@ function templateMain.getInjectionText(address,sizeOfComment)
 end
 function templateMain.usereadMem(title,size)
   local opcodeStr = createStringList()
-  --byteStr = ''
   local click = [[  readmem(titl,num)
   jmp return ]]
   if not title then return end
@@ -205,18 +202,11 @@ function templateMain.funcClick(frm)
 	for i=1,#byteStr,2 do
 	  new = new..string.sub(byteStr,i,i+1)..' '
 	end
-
-	--[[if instSize-numOfBytes == 00 then
-	  torep = ''
-	else
-	  torep = string.format('nop %d',instSize-numOfBytes)
-	end]]
 	torep = templateMain.nopsToRepeat(instSize,numOfBytes)
 	
 	name = getNameFromAddress(selAdrs)
 	mainTemplet = createStringList()
 	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,totalInstructions-1)
-	--print(mainTemplet.Text)
 	base,restore = [[push rax
   mov rax,newmem
   jmp rax
@@ -253,7 +243,6 @@ local disAsView = getMemoryViewForm().DisassemblerView
 	if not numOfReadmemBytes then return end
 	mainTemplet = createStringList()
 	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,3)
-	--print(mainTemplet.Text)
 	allocRestr,disableRes = [[alloc(name_bkpBytes, $100)
 registerSymbol(name_bkpBytes)
 name_bkpBytes:
@@ -270,24 +259,15 @@ dealloc(name_bkpBytes)
         allocRestr = allocRestr:gsub('bytes',numOfReadmemBytes)
         disableRes = disableRes:gsub('name',aobTitle)
         disableRes = disableRes:gsub('bytes',numOfReadmemBytes)
-	--fin = string.gsub(str,'nop%s*%d*', '' )
 	fin = string.gsub(str,'alloc(.-)jmp return',allocRestr)
 	fin = string.gsub(fin,'Follow:(.-)'..aobTitle,'Follow:\n'..aobTitle)
     fin = string.gsub(fin,'%[DISABLE%](.-){',disableRes..'{')
 	final = string.gsub(fin,'jmp newmem(.-)return:','')
 	form.Assemblescreen.Lines.Text = final
-  --print(final)
-
 end
 
 function templateMain.funcClickWithCall(frm)
     local form = frm
-	--print(form.ClassName)
-	--[[local disAsView = getMemoryViewForm().DisassemblerView
-	selAdrs = disAsView.SelectedAddress
-	target = targetIs64Bit()
-	numOfBytes = target and 13 or 8
-	number = target and 8 or 4 --]]
 	selAdrs,target,numOfBytes,number = templateMain.getBasicData()
 	
 	instSize = getInstructionSize(selAdrs)
@@ -339,12 +319,6 @@ function templateMain.funcClickWithCall(frm)
 	for i=1,#byteStr,2 do
 	  new = new..string.sub(byteStr,i,i+1)..' '
 	end
-
-	--[[if instSize-numOfBytes == 00 then
-	  torep = ''
-	else
-	  torep = string.format('nop %d',instSize-numOfBytes)
-	end--]]
 	torep = templateMain.nopsToRepeat(instSize,numOfBytes)
 
 	name = getNameFromAddress(selAdrs)
@@ -373,7 +347,7 @@ local instCount = 0
 local selAdrs = nil
 selAdrs,target,numOfBytes,number = templateMain.getBasicData()
 addressI = templateMain.disassembleAndGetData(selAdrs)
-stringAddress = getNameFromAddress(addressI)
+stringAddress = InputQuery('Enter name of Injection Symbol: ','Here: ',getNameFromAddress(addressI))
 instSize = getInstructionSize(stringAddress)
 
 while(instSize < numOfBytes)do
@@ -406,7 +380,6 @@ stri = stri:gsub('code:(.-)jmp return',redmem)
 stri = stri:gsub('code',codeReplace) --replace all code labels with that
 stri = stri:gsub('newmem:',symbol) --register and replace
 stri = stri:gsub('%[DISABLE%](.-)dealloc',unsym) --unregister and restore
---stri = stri:gsub('%](.-)define',']\ndefine') --end the \n between [ENABLE] and 'define'
 stri = stri:gsub('jmp newmem(.-)return:',jmpstr) --replace it with the long code
 stri = stri:gsub('newmem:',rstrStr) --replace it with pop rax as well
 form.Assemblescreen.Lines.Text = stri
