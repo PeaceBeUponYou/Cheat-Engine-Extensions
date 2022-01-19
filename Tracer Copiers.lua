@@ -1,4 +1,5 @@
 ------------######  Author--------------PeaceBeUponYou
+------------######  Patreon-------------https://www.patreon.com/peaceCheats
 ------------######  Community-----------Cheat The Game
 ------------######			:Join US:
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
@@ -10,6 +11,13 @@ local caps = {'USUAL BT','MAIN BT','FINISH BT','Symbol Refresh: Selected','Symbo
 function addEntry(form)
 	if not form then print('Cannot access form in  newEntry!'); return end
 	-- adding new popup entry:
+	local menItem = createMenuItem(form.MainMenu1)
+    form.MainMenu1.Items.add(menItem)
+    menItem.Caption = "Rename Tracer"
+    menItem.OnClick = function()
+       local newName = InputQuery("New Name","Enter new name: ","New Tracer")
+       form.Caption = newName
+    end
 	local pop = form.lvTracer.PopupMenu
 	local menu = {}
 	for i=1,5 do
@@ -135,18 +143,22 @@ function selRefersh(thefrm)
     if partsl ~= 'XX' then
      local left,right = partsl:match('(.*),') or partsl ,partsl:match(',(.*)') or ''
      local bl = left:match('%[(.*)%]')
+	 local _bl1,_bl2 = '',''
+	 if bl then _bl1 = '[' ;  _bl2 = ']' end
      local adrsl = getAddressSafe(bl or left)
      adrsl = adrsl and getNameFromAddress(adrsl) or adrsl
      local br = right:match('%[(.*)%]')
+	 local _br1,_br2 = '',''
+	 if br then _br1 = '[' ;  _br2 = ']' end
      local adrsr = getAddressSafe(br or right)
      adrsr = adrsr and getNameFromAddress(adrsr) or adrsr
 
-     opco = inst..' '..(adrsl or left)..(((adrsr or right)~= '') and ',' or '')..(adrsr or right)
-    end
+     opco = inst..' '..((adrsl and (_bl1..adrsl.._bl2) or nil) or left)..(((adrsr or right)~= '') and ',' or '')..((adrsr and (_br1..adrsr.._br2) or nil) or right)
+	end
 	--
 	local getMatch = getNameFromAddress(addressString)
 	--_text.Text = _text.Text:gsub(addressString,getMatch)
-	_text.Text = getMatch..' - '..opco
+	_text.Text = getMatch..' - '..(opco or upperPart)
 end
 function allRefersh(thefrm)
 	local trc = thefrm.lvTracer  
@@ -162,15 +174,19 @@ function allRefersh(thefrm)
 		--print(inst,d)
 		local opco = inst
 		if partsl ~= 'XX' then
-			local left,right = partsl:match('(.*),') or partsl ,partsl:match(',(.*)') or ''
-			local bl = left:match('%[(.*)%]')
-			local adrsl = getAddressSafe(bl or left)
-			adrsl = adrsl and getNameFromAddress(adrsl) or adrsl
-			local br = right:match('%[(.*)%]')
-			local adrsr = getAddressSafe(br or right)
-			adrsr = adrsr and getNameFromAddress(adrsr) or adrsr
+		 local left,right = partsl:match('(.*),') or partsl ,partsl:match(',(.*)') or ''
+		 local bl = left:match('%[(.*)%]')
+		 local _bl1,_bl2 = '',''
+		 if bl then _bl1 = '[' ;  _bl2 = ']' end
+		 local adrsl = getAddressSafe(bl or left)
+		 adrsl = adrsl and getNameFromAddress(adrsl) or adrsl
+		 local br = right:match('%[(.*)%]')
+		 local _br1,_br2 = '',''
+		 if br then _br1 = '[' ;  _br2 = ']' end
+		 local adrsr = getAddressSafe(br or right)
+		 adrsr = adrsr and getNameFromAddress(adrsr) or adrsr
 
-			opco = inst..' '..(adrsl or left)..(((adrsr or right)~= '') and ',' or '')..(adrsr or right)
+		 opco = inst..' '..((adrsl and (_bl1..adrsl.._bl2) or nil) or left)..(((adrsr or right)~= '') and ',' or '')..((adrsr and (_br1..adrsr.._br2) or nil) or right)
 		end
 		----------
 		local getMatch = getNameFromAddress(addressString)
