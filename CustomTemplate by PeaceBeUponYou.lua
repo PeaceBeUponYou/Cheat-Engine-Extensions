@@ -575,11 +575,11 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class PEACE_KLASS : PEACE_PARENTKLASS {
-  public ... PEACE_newMethod(...){
+  public  PEACE_newMethod(){
   }
 
   [MethodImpl(MethodImplOptions.NoInlining)]
-  public ... PEACE_oldMethod(...){
+  public  PEACE_oldMethod(){
   }
 }
 ]]
@@ -606,25 +606,33 @@ autoAssemble(PEACE_disablescript)
 	newF.Height = 210
 	newF.Caption = 'Data'
 	newF.Position = 'poWorkAreaCenter'
-
+	newF.BorderStyle = 'bsSizeable'
 	local lbls = {}
 	local labelCaps = {'Injection Address:','Parent Class:','Class Name:','New Method Name:','Old Method Name:'}
+	local maxWidth=0
 	for i=1,#labelCaps do
 	  lbls[i] = createLabel(newF)
 	  lbls[i].Caption = labelCaps[i]
 	  lbls[i].Width = 140
 	  lbls[i].Font.Size = 12
-	  lbls[i].Top = i>1 and lbls[i-1].Top + lbls[i-1].Height +10 or 19--(100 - 12*#labelCaps)
+	  lbls[i].Top = i>1 and lbls[i-1].Top + lbls[i-1].Height +10 or 29--(100 - 12*#labelCaps)
+	  maxWidth = lbls[i].Width > maxWidth and lbls[i].Width or maxWidth
 	end
 
 	local edts = {}
 	for i=1,#lbls do
 	  edts[i] = createEdit(newF)
+	  edts[i].Anchors = "[akLeft,akRight,akTop]"
 	  edts[i].Text = ''
 	  edts[i].Font.Size = 10
-	  edts[i].Left = 150
+	  edts[i].Left = maxWidth+2
 	  edts[i].Width = newF.Width - edts[i].Left - lbls[i].Left
-	  edts[i].Top = i>1 and edts[i-1].Top + edts[i-1].Height +10 or 10--(100 - 12*#labelCaps)
+	  edts[i].Top = i>1 and edts[i-1].Top + edts[i-1].Height +10 or lbls[i].Top--(100 - 12*#labelCaps)
+	end
+	if #lbls == #edts then
+		for i=1, #edts do
+			lbls[i].Top = edts[i].Top
+		end
 	end
 	function okclick()
 		adrs = edts[1].Text
@@ -665,4 +673,5 @@ autoAssemble(PEACE_disablescript)
 		edts[4].Text = 'new'..edts[3].Text
 		edts[5].Text = 'old'..edts[3].Text
 		end
+	newF.Height = edts[#edts].Top + btns[#btns].Height + 50
 end
