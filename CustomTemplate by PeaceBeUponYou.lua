@@ -16,7 +16,7 @@ function templateMain.AddForm(form)
   timer.Interval=100
   timer.OnTimer = function (t)
                     if (form.Menu==nil) then return end
-                    t.destroy()
+                    timer.destroy()
                     templateMain.newEntry(form)
                   end
   else
@@ -176,7 +176,7 @@ function templateMain.funcClick(frm)
 		instSize = instSize + getInstructionSize(nextAddress)
 	end
 	aobTitle = InputQuery('Enter name of AOB Symbol: ','Here: ','myAOB')
-	
+	if not(aobTitle) then return end
 	opcodeStr = createStringList()
 	click = '  //readmem(aobTitle,num)'
 	if not aobTitle then return end
@@ -449,6 +449,7 @@ function templateMain.LuaMonoInj(frm)
 	local selAdrs = disAsView.SelectedAddress
 	local aobTitle = InputQuery('Enter the Address of Injection: ','Here: ',getNameFromAddress(selAdrs))
 	local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
+	if not(symbolName) then return end
 	if aobTitle == '' then return end
 	local basicTemplate= baseTemp()
 	local execFunc = [=[function createEnableandDisable(enableScriptString, disableString , injAddress)
@@ -498,6 +499,7 @@ function templateMain.OPCLuaMonoInj(frm)
 	local selAdrs = disAsView.SelectedAddress
 	local aobTitle = InputQuery('Enter the Address of Injection: ','Here: ',getNameFromAddress(selAdrs))
 	local symbolName=inputQuery('Enter name of Injection Symbol: ','Here: ','mySymbol')
+	if not(symbolName) then return end
 	if aobTitle == '' then return end
 	local basicTemplate= baseTemp()
 	local execFunc = [=[function createEnableandDisable(enableScriptString, disableString , injAddress)
