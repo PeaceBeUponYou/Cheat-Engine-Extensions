@@ -15,7 +15,8 @@ function addEntry(form)
     form.MainMenu1.Items.add(menItem)
     menItem.Caption = "Rename Tracer"
     menItem.OnClick = function()
-       local newName = InputQuery("New Name","Enter new name: ","New Tracer")
+       local newName = InputQuery("New Name","Enter new name: ",form.Caption)
+	   if newName == nil then newName = form.Caption end
        form.Caption = newName
     end
 	local pop = form.lvTracer.PopupMenu
@@ -62,7 +63,7 @@ function registerForms(form)
   timer.Interval=100
   timer.OnTimer = function (t)
 	if (form.Menu==nil) then return end
-	t.destroy()
+	timer.destroy()
 	addEntry(form)
   end
   else
@@ -190,7 +191,7 @@ function allRefersh(thefrm)
 		end
 		----------
 		local getMatch = getNameFromAddress(addressString)
-		if addressString and getMatch then
+		if addressString and getMatch and opco then
 		--itmj.Text = itmj.Text:gsub(addressString,getMatch)
 		itmj.Text = getMatch..' - '..opco
 		end
