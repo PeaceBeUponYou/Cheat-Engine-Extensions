@@ -4,45 +4,60 @@
 ------------######	Discord:  https://discordapp.com/invite/ndn4pqs
 ------------######	Website:  https://cheatthegame.net
 ------------######	Facebook: https://facebook.com/groups/CheatTheGame?_rdc=1&_rdr
-------------###### 	MY GitHub: https://github.com/PeaceBeUponYou/Cheat-Engine-Extensions
-------------######  Ext Version: 1.1
 -------------------------------------------------------
 
-registerFormAddNotification(function (form)
+function regForm(form)
 	if form.ClassName == 'TfrmAutoInject' then
-	t = createTimer()
-	t.Interval = 100
+		--if not(form.emplate1) or not(form.emplate1.Visible) then return end
+		local t = createTimer()
+		t.Interval = 100
 		t.OnTimer = function()
-			local a = form.getComponentCount()
-			for j=0,a-1 do
-				local b = form.getComponent(j)
-				if b.Caption == 'Execute' then
-					seePanel = form.Panel1
-					ADD = form.File1
-					if not seePanel.BTN1 then
-						c = createButton(seePanel)
-						c.Caption = 'Add to Code List'
-						c.Width = 150
-						c.Length = 500
-						c.Height = 31
-						c.Top = 2
-						c.Left = 343
-						c.Name = 'BTN1'
-						c.OnClick = function()
-							for j=0,ADD.Count-1 do
-								if ADD.Item[j].Caption == 'Assign to current cheat table' then		
-								clickItem = ADD.Item[j]
-								clickItem.doClick()
-								--t.destroy()
-								end
-							end
-						end
+			if (form.PopupMenu1) then
+				local ppm = form.PopupMenu1
+				local itm = createMenuItem(ppm)
+				ppm.Items.Add(itm)
+				itm.Caption = "Sort Record to table"
+				itm.OnClick = function()
+					local synEDT = form.Assemblescreen
+					local txt = synEDT.SelText
+					if txt == nil or txt == "" then print('no text selected!') return end
+					txt = txt:match('%((.*)%)')
+					if txt == nil or txt == "" then print('wrong selection dipshit!') return end
+					local symName,mod,aob
+					local desc = getAddressList().SelectedRecord.Description
+					for w,c,v in txt:gmatch('(.*),(.*),(.*)') do
+					 symName = w
+					 mod = c
+					 aob = v
 					end
+					aob = (aob) and aob or ""
+					mod = (mod) and mod or ""
+					symName = (symName) and symName or ""
+					desc = (desc) and desc or ""
+					getLuaEngine().mOutput.clear()
+					local formate = '{aob = \"'..aob..'\",mod = \"'..mod..'\",symName = \"'..symName..'\",memrecDesc = \"'..desc..'\"}'
+					print(formate)
+					writeToClipboard(formate)
 				end
 			end
-			t.destroy()
+			if (form.Panel1) then
+				local seePanel = form.Panel1
+				if not (seePanel.BTN1) then
+					local btnAdd = createButton(seePanel)
+					btnAdd.Caption = 'Add to Code List'
+					btnAdd.Width = 150
+					btnAdd.Length = 500
+					btnAdd.Height = 31
+					btnAdd.Top = 2
+					btnAdd.Left = 343
+					btnAdd.Name = 'BTN1'
+					btnAdd.OnClick = function()
+						form.Assigntocurrentcheattable1.doClick()
+					end
+				end
+				t.destroy()
+			end
 		end
-	else
-		error()
 	end
-end)
+end
+registerFormAddNotification(regForm)
