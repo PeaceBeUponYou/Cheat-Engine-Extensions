@@ -24,7 +24,8 @@ function regForm(form)
 					txt = txt:match('%((.*)%)')
 					if txt == nil or txt == "" then print('wrong selection dipshit!') return end
 					local symName,mod,aob
-					local desc = getAddressList().SelectedRecord.Description
+					--if not(getAddressList().SelectedRecord) then return end
+					local desc = (getAddressList().SelectedRecord) and getAddressList().SelectedRecord.Description or ""
 					for w,c,v in txt:gmatch('(.*),(.*),(.*)') do
 					 symName = w
 					 mod = c
