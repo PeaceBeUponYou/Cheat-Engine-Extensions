@@ -116,7 +116,7 @@ end
 
 function templateMain.getInjectionText(address,sizeOfComment)
   local strList = createStringList()
-  generateFullInjectionScript(strList,address,sizeOfComment)
+  generateFullInjectionScript(strList,address,10)
   return strList.Text
 end
 function templateMain.usereadMem(title,size)
@@ -206,7 +206,7 @@ function templateMain.funcClick(frm)
 	
 	name = getNameFromAddress(selAdrs)
 	mainTemplet = createStringList()
-	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,totalInstructions-1)
+	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,10)
 	base,restore = [[push rax
   mov rax,newmem
   jmp rax
@@ -242,7 +242,7 @@ local disAsView = getMemoryViewForm().DisassemblerView
 	if not aobTitle then return end
 	if not numOfReadmemBytes then return end
 	mainTemplet = createStringList()
-	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,3)
+	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,13)
 	allocRestr,disableRes = [[alloc(name_bkpBytes, $100)
 registerSymbol(name_bkpBytes)
 name_bkpBytes:
@@ -323,7 +323,7 @@ function templateMain.funcClickWithCall(frm)
 
 	name = getNameFromAddress(selAdrs)
 	mainTemplet = createStringList()
-	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,totalInstructions-1)
+	t = generateAOBInjectionScript(mainTemplet,aobTitle,name,11)
 	--print(mainTemplet.Text)
 	
     Author = [[[ENABLE]
@@ -370,7 +370,7 @@ if not thereadMemCode then messageDialog('No Title!','Script Name was canceled.'
 redmem = thereadMemCode:gsub('code',codeReplace)
 
 mono = '//luacall(LaunchMonoDataCollector())\n//Template Author = PeaceBeUponYou'
-thestr = templateMain.getInjectionText(stringAddress,instCount+1)
+thestr = templateMain.getInjectionText(stringAddress,10)
 def = thestr:match('}(.-)%)')..')' --extract the define before enable
 --def = def:gsub('%((.-)%,','('..name..',')
 stri = thestr:gsub('{(.-)%[','\n[',1) --replace everything before ENABLE
