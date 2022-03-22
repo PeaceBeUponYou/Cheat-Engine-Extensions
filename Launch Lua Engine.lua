@@ -32,10 +32,8 @@ end
 local CNewMen = createMenuItem(checkMenu)
 CNewMen.Caption = currentExtCap
 checkMenu.add(CNewMen)
+CNewMen.Shortcut = 'CTRL+L'
 
 CNewMen.OnClick = function()
 	getLuaEngine().show()
 end
-
-
-
