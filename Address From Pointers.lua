@@ -26,9 +26,9 @@ crtItem.OnClick = function()
 	if not sel then showMessage("Invalid Address"); return end;
 	if not (sel.Address) then showMessage("Invalid Address"); return end;
 	if sel.CachedAddress then
-		writeToClipboard(sel.CachedAddress)
+		writeToClipboard(('%X'):format(sel.CachedAddress))
 	else
-		writeToClipboard(sel.Address)
+		writeToClipboard(('%X'):format(sel.Address))
 	end
 end
 
@@ -37,13 +37,7 @@ crtItem2.OnClick = function()
 	sel = adl.SelectedRecord
 	if not sel then showMessage("Invalid Address"); return end;
 	if not (sel.Address) then showMessage("Invalid Address"); return end;
-	if sel.CachedAddress then
-		crtRec = adl.createMemoryRecord()
-		crtRec.Address = sel.CachedAddress
-		crtRec.Description = "PointedAddress"
-	else
-		crtRec = adl.createMemoryRecord()
-		crtRec.Address = sel.Address
-		crtRec.Description = "PointedAddress"
-	end
+	crtRec = adl.createMemoryRecord()
+	crtRec.Address = (sel.CachedAddress) and ('%X'):format(sel.CachedAddress) or ('%X'):format(sel.Address)
+	crtRec.Description = "PointedAddress"
 end
