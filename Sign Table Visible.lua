@@ -1,0 +1,1 @@
+getMainForm().miSignTable.Visible = true
