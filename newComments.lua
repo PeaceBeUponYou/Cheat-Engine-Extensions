@@ -1,8 +1,8 @@
 ------------######  Author--------------PeaceBeUponYou
-------------######  Extension-----------CommentsForm
+------------######  Extension-----------Comments Form SYN Edit
 -------------------------------------------------------
 
-
+--local frm
 for i=0,getFormCount()-1 do
  if getForm(i).Name == 'Comments' then
     frm = getForm(i)
@@ -46,7 +46,11 @@ function createPopupAndAddItems(pnl1)
   local clrAllLabel = 'Clear All'
   local clrSelLabel = 'Clear Selected'
   local gotoAddressLabel = 'Go To Address'
+  local startBreak = "Insert Start Break"
+  local stopBreak = "Insert Stop Break"
 
+  saBItem = createMenuItem(popup)
+  soBItem = createMenuItem(popup)
   cpyItem = createMenuItem(popup)
   pstItem = createMenuItem(popup)
   cutItem = createMenuItem(popup)
@@ -57,6 +61,8 @@ function createPopupAndAddItems(pnl1)
   clrSelItem = createMenuItem(popup)
   gotoAddressItem = createMenuItem(popup)
 
+  saBItem.Caption = startBreak
+  soBItem.Caption = stopBreak
   cpyItem.Caption = cpyLabel
   pstItem.Caption = pstLabel
   cutItem.Caption = cutLabel
@@ -67,16 +73,20 @@ function createPopupAndAddItems(pnl1)
   clrSelItem.Caption = clrSelLabel  
   gotoAddressItem.Caption = gotoAddressLabel
 
-  popup.Items.Insert (0, cpyItem)
-  popup.Items.Insert (1, pstItem)
-  popup.Items.Insert (2, cutItem)
-  popup.Items.Insert (3, undoItem)
-  popup.Items.Insert (4, redoItem)
-  popup.Items.Insert (5, selAllItem)
-  popup.Items.Insert (6, clrSelItem)
-  popup.Items.Insert (7, clrAllItem)
-  popup.Items.Insert (8, gotoAddressItem)
+  popup.Items.Insert (0, saBItem)
+  popup.Items.Insert (1, soBItem)
+  popup.Items.Insert (2, cpyItem)
+  popup.Items.Insert (3, pstItem)
+  popup.Items.Insert (4, cutItem)
+  popup.Items.Insert (5, undoItem)
+  popup.Items.Insert (6, redoItem)
+  popup.Items.Insert (7, selAllItem)
+  popup.Items.Insert (8, clrSelItem)
+  popup.Items.Insert (9, clrAllItem)
+  popup.Items.Insert (10, gotoAddressItem)
   
+  saBItem.Shortcut = 'CTRL+;'
+  soBItem.Shortcut = 'CTRL+SHIFT+;'
   cpyItem.Shortcut = 'CTRL+C'
   pstItem.Shortcut = 'CTRL+V'
   cutItem.Shortcut = 'CTRL+X'
@@ -85,6 +95,14 @@ function createPopupAndAddItems(pnl1)
   selAllItem.Shortcut = 'CTRL+A'
   gotoAddressItem.Shortcut = 'CTRL+G'
   --item's functions
+  saBItem.OnClick = function()
+		local cnt = 10
+		pnl1.SelText = '//'..string.rep('*',cnt)..pnl1.SelText..string.rep('*',cnt)
+  end
+  soBItem.OnClick = function()
+		local cnt = 25
+        pnl1.SelText = '//'..string.rep('*',cnt)
+  end
   cpyItem.OnClick = function()
         pnl1.CopyToClipboard()
   end
