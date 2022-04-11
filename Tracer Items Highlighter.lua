@@ -138,25 +138,57 @@ function addToStackList(frm)
 	container[3].OnClick = function() checkUncheckTraceHighlighter(container[3]) end
 
 end
-
+function isFormPresent(name)
+	for i=0,getFormCount()-1 do
+		if getForm(i).Name == name then return true end
+	end
+	return false
+end
+function componentReg(thread,form,StackView)
+	if not(form) or not(form.getComponent(2)) then thread.terminate() return end
+	if not(isFormPresent(form.Name)) then thread.terminate() return end
+	::back::
+	if not(form) or not(form.getComponent(2)) then thread.terminate() return end
+	if (StackView) then
+		addToStackList(StackView)
+		thread.terminate()
+		return
+	end
+	Sleep(100)
+	goto back
+end
+local function taddEntry(form)
+	local thisForm = form
+	if not thisForm then print('Cannot access form in  newEntry!'); return end
+	-- adding new popup entry:
+	local menItem = createMenuItem(thisForm.MainMenu1)
+    thisForm.MainMenu1.Items.add(menItem)
+    menItem.Caption = "Add Highlighter Menu"
+    menItem.OnClick = function()
+	   local stk
+		for i=0,thisForm.getComponentCount()-1 do
+		  if thisForm.getComponent(i).ClassName == "TfrmStackView" then
+			 stk = thisForm.getComponent(i)
+		  end
+		end
+	   if not(stk) then return end
+	   for i=0,stk.PopupMenu1.Items.Count-1 do
+		if stk.PopupMenu1.Items.Item[i].Caption == 'Highlight Selected' then return end
+	   end
+       local tr = createThread(componentReg,thisForm,stk)
+    end
+end
 function registerFormsH(form)
   if form.ClassName =="TfrmTracer" then
-  local ddestroy = form.OnDestroy
-  local cclose = form.OnClose
   local timer=createTimer()
   timer.Interval=100
   timer.OnTimer = function (t)
-	if form.ClassName ~="TfrmTracer" then timer.Enabled = false; timer.destroy(); timer = nil; return end
-	for i=0 ,form.getComponentCount()-1 do
-		if form.getComponent(i).ClassName == 'TfrmStackView' then
-			local comp = form.getComponent(i)
-			timer.destroy()
-			addToStackList(comp)
-		end
-	end
+	if (form.Menu==nil) then return end
+	timer.destroy()
+	taddEntry(form)
   end
   else
    return
   end
 end
- obj = registerFormAddNotification(registerFormsH)
+registerFormAddNotification(registerFormsH)
