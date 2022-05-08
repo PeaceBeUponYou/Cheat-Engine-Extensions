@@ -25,8 +25,23 @@ function templateMain.AddForm(form)
 	
 end
 formx=registerFormAddNotification(templateMain.AddForm)
+function templateMain.clickfun(form)
+	local temp = [[
 
+[ENABLE]
+
+
+
+[DISABLE]
+
+
+]]
+	form.Assemblescreen.Lines.Text = temp
+end
 function templateMain.newEntry(form)
+    ---
+	form.CheatTablecompliantcodee1.OnClick = function() templateMain.clickfun(form) end
+	---
 	local men = form.emplate1
 	---parent menu:
 	for i=1, #templateMain.MyTemplates do
