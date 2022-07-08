@@ -7,7 +7,7 @@
 templateMain = {}
 templateMain.MyTemplates = {'By PeaceBeUponYou','-'}
 templateMain.MainCont = {}
-templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','Direct Bytes Manipulation (AOB)','Fixed Absolute Jump | with call','-','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes','MONO -CSCompiler'}
+templateMain.t_names = {'Lua Framework','Fixed Absolute Jump','Direct Bytes Manipulation (AOB)','Fixed Absolute Jump | with call','-','MONO - ASM Injection With ReadMem','MONO - Lua Injection With ReadMem','MONO - Lua Injection With Opcodes','MONO - CSCompiler'}
 
 function templateMain.AddForm(form)
   if form.ClassName =="TfrmAutoInject" then
@@ -81,6 +81,7 @@ function templateMain.newEntry(form)
 	itm[8].OnClick = function()
 			  templateMain.OPCLuaMonoInj(form)
 			end
+	itm[9].Shortcut = "CTRL+SHIFT+C"
 	itm[9].OnClick = function() --MONO CSCompiler
 			  templateMain.CSCompiler(form)
 			end
@@ -566,6 +567,12 @@ end]=]
 	basicTemplate = basicTemplate:gsub('PEACE_Symbol',symbolName)
 	form.Assemblescreen.Lines.Text = basicTemplate
 end
+local function getAddressAndClassName(_string)
+  if _string=="" or _string==nil then return nil,nil end
+  local ClassName = _string:match('(.*):')
+  local Address = _string:gsub('%.',':')
+  return ClassName,Address
+end
 
 function templateMain.CSCompiler(form)
 	if getCEVersion() < 7.3 then showMessage('Cheat Engine 7.3 or higher is required, you dufus!'); return end
@@ -577,19 +584,20 @@ if syntaxcheck then return end
 [ENABLE]
 --Enable Mono:
 PEACE_InjectionAddress = 'PEACE_ADDRESS'
+unregisterSymbol('registerSymbol')
+registerSymbol('PEACE_ADDRESS',getAddressSafe(PEACE_InjectionAddress),true)
 if not(getAddressSafe(PEACE_InjectionAddress)) then miMonoActivateClick() end --enable Mono
 local PEACE_ref, PEACE_sys = dotnetpatch_getAllReferences()
-PEACE_ref[#PEACE_ref+1] = PEACE_sys
+--PEACE_ref[#PEACE_ref+1] = PEACE_sys
 
 PEACE_script = [[
 using System;
 using System.Collections;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
 
 public class PEACE_KLASS : PEACE_PARENTKLASS {
   public  PEACE_newMethod(){
@@ -599,6 +607,24 @@ public class PEACE_KLASS : PEACE_PARENTKLASS {
   public  PEACE_oldMethod(){
   }
 }
+
+/*public static class FieldsAndMethods
+{
+	public static object GetNonPublicField(object _obj, string _fieldName)
+	{
+		FieldInfo field = _obj.GetType().GetField(_fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+		if (field == null)
+		{
+			return null;
+		}
+		return field.GetValue(_obj);
+	}
+	public static object GetNonPublicMethod(object _obj, string _methodName)
+	{
+		MethodInfo method = _obj.GetType().GetMethod(_methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+		return method;
+	}
+}//*/
 ]]
 
 local PEACE_asm, PEACE_msg2 = compileCS(PEACE_script,PEACE_ref,'')
@@ -615,7 +641,7 @@ if (getAddressSafe(PEACE_InjectionAddress)) then miMonoActivateClick() end
 [DISABLE]
 
 autoAssemble(PEACE_disablescript)
-
+unregisterSymbol('PEACE_ADDRESS')
 	]=]
 
 	local newF = createForm()
@@ -679,9 +705,10 @@ autoAssemble(PEACE_disablescript)
 		 btns[i].Left = i>1 and newF.Width- (btns[i].Width+10)  or 10
 		 btns[i].OnClick = btnFuns[i]
 	end
-		edts[1].Text = getNameFromAddress(getMemoryViewForm().DisassemblerView.SelectedAddress or '')
-		edts[2].Text = ''
-	if (monopipe) then
+		local className,addressName = getAddressAndClassName(getNameFromAddress(getMemoryViewForm().DisassemblerView.SelectedAddress or ''))
+		edts[1].Text = (addressName) and addressName or getNameFromAddress(getMemoryViewForm().DisassemblerView.SelectedAddress or '')
+		edts[2].Text = (className) and className or ''
+	if (monopipe and edts[2].Text=='') then
 		local txt = edts[1].Text:match('(.*):')
 		local thKls = mono_findClass('',txt)
 		if thKls~=nil then edts[2].Text = txt end
