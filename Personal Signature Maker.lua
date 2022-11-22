@@ -16,8 +16,10 @@ local CNewMen = createMenuItem(_MR)
 CNewMen.Caption = currentExtCap
 _MR.Insert(3,CNewMen)
 CNewMen.OnClick = function()
-memV = getMemoryViewForm().DisassemblerView
-store = ''
+local memV = getMemoryViewForm().DisassemblerView
+local store = nil
+local mainSig = nil
+local mainMask = nil
 function selAddresses(frm)
 	sel1 = memV.SelectedAddress
 	sel2 = memV.SelectedAddress2
@@ -39,16 +41,29 @@ for i=0, (lastAdrs-firstAdrs) do
   num = #theBytes
   firstAdrs = firstAdrs + num
   oneless = nil
+  local signature=''
+  local mask=''
   for j=1, num do
   if oneless == 1 and j ==num then break end
    if j==1 then
-     str = ('%02X '):format(theBytes[1])
-    if theBytes[1] >= 0x41 and theBytes[1] <= 0x4F then str = ('%s%02X '):format(str,theBytes[2]); oneless = 1 end --if its x64 upgraded instruction
+     str = ('%02X'):format(theBytes[1])
+     signature = '\\x'..str
+     mask="x"
+     str = str..' '
+    if theBytes[1] >= 0x41 and theBytes[1] <= 0x4F then
+      str = ('%s%02X '):format(str,theBytes[2])
+      signature = signature..'\\x'..('%02X'):format(theBytes[2]);
+      mask = mask..'x'
+      oneless = 1 end --if its x64 upgraded instruction
    else
     str = str..'pp' --string..wildcard
+    signature = signature..'\\x00'
+    mask = mask..'?'
   end
   end
-  store = store..' '..str
+  store = store and store..' '..str or str
+  mainSig = mainSig and mainSig..signature or signature
+  mainMask = mainMask and mainMask..mask or mask
   print(getNameFromAddress(lastdata.address),#theBytes,' ',str) --optional--to print each address with its wildcard
   if firstAdrs > lastAdrs then
    break
@@ -56,4 +71,6 @@ for i=0, (lastAdrs-firstAdrs) do
 end
  writeToClipboard(store)
  print(store)
+ print(mainSig)
+ print(mainMask)
 end
